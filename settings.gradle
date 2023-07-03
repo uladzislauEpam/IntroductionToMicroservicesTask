@@ -1,0 +1,4 @@
+rootProject.name = 'IntroductionToMicroservicesTask'
+include 'ResourceApplication'
+include 'SongApplication'
+
