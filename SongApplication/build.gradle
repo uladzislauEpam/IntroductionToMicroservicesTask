@@ -24,9 +24,25 @@ dependencies {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
     compileOnly 'org.projectlombok:lombok:1.18.28'
-
-
 }
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.epam.uladzislau.song.SongApplication'
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+//configurations {
+//    all {
+//        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+//        exclude group: 'ch.qos.logback', module: 'logback-classic'
+//        exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
+//    }
+//}
 
 test {
     useJUnitPlatform()

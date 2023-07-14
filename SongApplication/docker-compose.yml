@@ -1,8 +1,41 @@
-version: '3'
+version: '3.5'
 services:
-  postgres:
-    image: postgres:latest
+  appS:
+    container_name: appSong
+    image: app-song
+    build:
+      context: .
+    ports:
+      - "8090:8090"
+    expose:
+      - 8090
+    networks:
+      - my-proxy-net
+      - internalS
+    depends_on:
+      - dbS
     environment:
-      POSTGRES_DB: "songdb"
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dbS:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+  dbS:
+    image: postgres
+    ports:
+      - "54321:5432"
+    networks:
+      - internalS
+    expose:
+      - 54321
+      - 5432
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+networks:
+  my-proxy-net:
+    name: custom_network
+    external: true
+  internalS:
+    name: internalS
+

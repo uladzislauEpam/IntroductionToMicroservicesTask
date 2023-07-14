@@ -1,8 +1,39 @@
-version: '3'
+version: '3.5'
 services:
-  postgres:
-    image: postgres:latest
+  appR:
+    container_name: appResource
+    image: app-resource
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    expose:
+      - 8080
+    networks:
+      - proxynet
+      - internalR
+    depends_on:
+      - dbR
     environment:
-      POSTGRES_DB: "resourcedb"
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dbR:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+  dbR:
+    image: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - internalR
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+networks:
+  proxynet:
+    name: custom_network
+  internalR:
+    name: internalR
+

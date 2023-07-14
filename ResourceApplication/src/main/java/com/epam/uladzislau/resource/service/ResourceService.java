@@ -84,7 +84,8 @@ public class ResourceService {
 
             return resource.getId();
         } catch (Exception e) {
-            throw new RuntimeException("Cannot process file");
+            System.out.println("Cannot process file: Nested exception is " + e.getMessage());
+            throw new RuntimeException("Cannot process file: Nested exception is " + e.getMessage());
         }
     }
 }

@@ -34,3 +34,8 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+task runJar(type: JavaExec) {
+    main = "-jar";
+    args jar.archiveFile.get()
+}

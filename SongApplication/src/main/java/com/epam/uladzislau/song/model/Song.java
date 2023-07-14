@@ -8,7 +8,6 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "song")
