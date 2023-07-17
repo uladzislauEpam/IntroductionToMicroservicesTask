@@ -23,7 +23,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Service
 public class ResourceService {
 
-    private static final String URL = "localhost:8090/api/song";
+//    private static final String URL = "localhost:8090/api/song";
+//    private static final String URL = "http://host.docker.internal:8090/api/song";
+    private static final String URL = "apps:8090/api/song";
 
     @Autowired
     private ResourceRepository resourceRepository;
