@@ -10,6 +10,6 @@ http://localhost:8090\
 \
 Postman ex:\
 POST http://localhost:8080/api/resource
-body: form-data[mp3_file]
+body: form-data[mp3_file]\
 DELETE http://localhost:8080/api/resource/1
 
