@@ -1,7 +1,7 @@
 version: '3.5'
 services:
-  appe:
-    container_name: appEureka
+  app-e:
+    container_name: app-eureka
     image: app-eureka
     build:
       context: ./EurekaServer
@@ -10,9 +10,9 @@ services:
     expose:
       - 8761
     networks:
-      - proxynet
-  appr:
-    container_name: appResource
+      - proxy-net
+  app-r:
+    container_name: app-resource
     image: app-resource
     build:
       context: ./ResourceApplication
@@ -21,29 +21,29 @@ services:
     expose:
       - 8080
     networks:
-      - proxynet
-      - internalR
+      - proxy-net
+      - internal-r
     depends_on:
-      - dbr
+      - db-r
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://dbr:5432/postgres
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-r:5432/postgres
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-  dbr:
+  db-r:
     image: postgres
     ports:
       - "5432:5432"
     networks:
-      - internalR
+      - internal-r
     expose:
       - 5432
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_DB=postgres
-  apps:
-    container_name: appSong
+  app-s:
+    container_name: app-song
     image: app-song
     build:
       context: ./SongApplication
@@ -52,21 +52,21 @@ services:
     expose:
       - 8090
     networks:
-      - proxynet
-      - internalS
+      - proxy-net
+      - internal-s
     depends_on:
-      - dbs
+      - db-s
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://dbs:5432/postgres
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-s:5432/postgres
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-  dbs:
+  db-s:
     image: postgres
     ports:
       - "54321:5432"
     networks:
-      - internalS
+      - internal-s
     expose:
       - 54321
       - 5432
@@ -75,10 +75,9 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_DB=postgres
 networks:
-  proxynet:
-    name: proxy_network
-  internalS:
-    name: internalS
-  internalR:
-    name: internalR
-
+  proxy-net:
+    name: proxy-net
+  internal-s:
+    name: internal-s
+  internal-r:
+    name: internal-r
