@@ -1,4 +1,5 @@
 rootProject.name = 'IntroductionToMicroservicesTask'
 include 'ResourceApplication'
 include 'SongApplication'
+include 'EurekaServer'
 

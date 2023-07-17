@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.epam.uladzislau.resource.feign.ServiceSongs;
 import com.epam.uladzislau.resource.model.Resource;
 import com.epam.uladzislau.resource.service.ResourceService;
 
@@ -23,6 +24,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/resource")
 public class ResourceController {
+
+    @Autowired
+    private ServiceSongs feign;
     @Autowired
     private ResourceService resourceService;
 
@@ -49,6 +53,17 @@ public class ResourceController {
     @DeleteMapping("/{ids}")
     List<Long> delete(@PathVariable List<Long> ids) {
         return resourceService.delete(ids);
+    }
+
+    @GetMapping("/getsong")
+    ResponseEntity<Map<String, String>> getsong() {
+        Map<String, String> object = new HashMap<>();
+        var song = feign.getSong(1);
+        object.put("id", Long.toString(song.getId()));
+        System.out.println("========================= " + song);
+        object.put("title", song.getTitle());
+        object.put("resourceId", Long.toString(song.getResourceId()));
+        return new ResponseEntity<>(object, HttpStatus.OK);
     }
 
 }

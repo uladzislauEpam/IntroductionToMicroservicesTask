@@ -10,6 +10,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/EurekaServer" />
             <option value="$PROJECT_DIR$/ResourceApplication" />
             <option value="$PROJECT_DIR$/SongApplication" />
           </set>
