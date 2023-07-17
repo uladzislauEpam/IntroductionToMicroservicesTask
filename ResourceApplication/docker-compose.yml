@@ -1,6 +1,6 @@
 version: '3.5'
 services:
-  appR:
+  appr:
     container_name: appResource
     image: app-resource
     build:
@@ -13,13 +13,13 @@ services:
       - proxynet
       - internalR
     depends_on:
-      - dbR
+      - dbr
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://dbR:5432/postgres
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dbr:5432/postgres
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-  dbR:
+  dbr:
     image: postgres
     ports:
       - "5432:5432"

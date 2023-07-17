@@ -1,6 +1,6 @@
 version: '3.5'
 services:
-  appS:
+  apps:
     container_name: appSong
     image: app-song
     build:
@@ -13,13 +13,13 @@ services:
       - my-proxy-net
       - internalS
     depends_on:
-      - dbS
+      - dbs
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://dbS:5432/postgres
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dbs:5432/postgres
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-  dbS:
+  dbs:
     image: postgres
     ports:
       - "54321:5432"
