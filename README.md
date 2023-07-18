@@ -1,3 +1,7 @@
+Repository:\
+https://github.com/uladzislauEpam/IntroductionToMicroservicesTask.git
+\
+\
 Startup:\
 gradle build\
 docker-compose up\

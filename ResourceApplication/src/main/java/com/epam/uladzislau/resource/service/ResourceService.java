@@ -4,9 +4,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.epam.uladzislau.resource.dto.SongDto;
 import com.epam.uladzislau.resource.feign.ServiceSongs;
 import com.epam.uladzislau.resource.model.Resource;
-import com.epam.uladzislau.resource.model.Song;
 import com.epam.uladzislau.resource.repository.ResourceRepository;
 
 import org.apache.tika.metadata.Metadata;
@@ -16,6 +16,9 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.ContentHandler;
@@ -23,9 +26,8 @@ import org.xml.sax.ContentHandler;
 @Service
 public class ResourceService {
 
-    private static final String URL = "localhost:8090/api/song";
-//    private static final String URL = "http://host.docker.internal:8090/api/song";
-//    private static final String URL = "apps:8090/api/song";
+    @Value("${song.app.url}")
+    private static String URL;
 
     @Autowired
     private ServiceSongs feign;
@@ -33,8 +35,9 @@ public class ResourceService {
     @Autowired
     private ResourceRepository resourceRepository;
 
-    public List<Resource> getAll() {
-        return resourceRepository.findAll();
+    public Page<Resource> getAll(int page) {
+        PageRequest pageRequest = PageRequest.of(page, 10);
+        return resourceRepository.findAll(pageRequest);
     }
 
     public Resource get(Long id) {
@@ -46,20 +49,14 @@ public class ResourceService {
         for (var id : ids) {
             var resource = resourceRepository.findById(id);
             if(resource.isPresent()) {
+                validateMetadataDeleted(feign.deleteSong(resource.get().getMetadataId()));
                 resourceRepository.deleteById(id);
-//                WebClient.builder().build()
-//                    .delete()
-//                    .uri(URL + "/" + resource.get().getMetadataId())
-//                    .retrieve();
-//                deletedIds.add(id);
-                feign.deleteSong( resource.get().getMetadataId());
             }
         }
         return deletedIds;
     }
 
-    public Long upload(MultipartFile file) {
-        long id = -1;
+    public Long upload(MultipartFile file) throws Exception {
         try {
             InputStream stream = file.getInputStream();
 
@@ -67,37 +64,38 @@ public class ResourceService {
             ContentHandler contentHandler = new BodyContentHandler();
             Metadata metadata = new Metadata();
             pparser.parse(stream, contentHandler, metadata, new ParseContext());
+            validateUploadFile(metadata);
             stream.close();
 
-            Resource resource = resourceRepository.save(new Resource(file.getBytes()));
-            id = resource.getId();
+            Resource resource = new Resource(file.getBytes());
+            var songId = feign.postSong(new SongDto(
+                metadata.get(TikaCoreProperties.TITLE),
+                metadata.get("xmpDM:album"),
+                metadata.get("xmpDM:albumArtist"),
+                metadata.get("Content-Type")));
 
-//            Map<String, String> body = new HashMap<>();
-//            body.put("title", metadata.get("title"));
-//            body.put("resourceId", Long.toString(resource.getId()));
-//
-//            var song = WebClient.builder().build()
-//                .post()
-//                .uri(URL)
-//                .body(BodyInserters.fromValue(body))
-//                .retrieve()
-//                .bodyToMono(Song.class)
-//                .block();
-            var song = feign.postSong(new Song(resource.getId(), metadata.get(TikaCoreProperties.TITLE)));
-            if (song != null) {
-                resource.setMetadataId(song.getId());
+            if (songId != null) {
+                resource.setMetadataId(songId);
+                resourceRepository.save(resource);
             } else {
-                throw new RuntimeException("Cannot save metadata");
             }
-            resourceRepository.save(resource);
-
             return resource.getId();
         } catch (Exception e) {
-            if(id != -1) {
-                resourceRepository.deleteById(id);
-            }
-            System.out.println("Cannot process file: Nested exception is " + e.getMessage());
-            throw new RuntimeException("Cannot process file: Nested exception is " + e.getMessage());
+            System.out.println("Cannot process file: " + e.getMessage());
+            throw new Exception("Cannot process file: " + e.getMessage());
+        }
+    }
+
+    private void validateMetadataDeleted(List<Long> ids) {
+        if(ids.size() != 1) {
+            throw new RuntimeException("Error deleting resource metadata");
+        }
+    }
+
+    private void validateUploadFile(Metadata metadata){
+        String format = metadata.get("Content-Type");
+        if (format == null || format.isBlank() || !format.toLowerCase().contains("audio/mpeg")) {
+            throw new RuntimeException("Invalid file provided");
         }
     }
 }

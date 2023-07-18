@@ -7,24 +7,25 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import lombok.AllArgsConstructor;
-
 @Entity
 @Table(name = "song")
-@AllArgsConstructor
 public class Song {
 
     public Song(){}
 
-    public Song(Long resourceId, String title) {
-        this.resourceId = resourceId;
+    public Song(String title, String album, String creator, String format) {
         this.title = title;
+        this.album = album;
+        this.creator = creator;
+        this.format = format;
     }
 
-    public Song(Long id, Long resourceId, String title) {
+    public Song(Long id, String title, String album, String creator, String format) {
         this.id = id;
-        this.resourceId = resourceId;
         this.title = title;
+        this.album = album;
+        this.creator = creator;
+        this.format = format;
     }
 
     @Id
@@ -35,18 +36,28 @@ public class Song {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "resource_id")
-    private Long resourceId;
+    @Column(name = "album")
+    private String album;
+
+    @Column(name = "creator")
+    private String creator;
+
+    @Column(name = "format")
+    private String format;
 
     public Long getId() {
         return id;
     }
-
     public String getTitle() {
         return title;
     }
-
-    public Long getResourceId() {
-        return resourceId;
+    public String getalbum() {
+        return album;
+    }
+    public String getCreator() {
+        return creator;
+    }
+    public String getFormat() {
+        return format;
     }
 }

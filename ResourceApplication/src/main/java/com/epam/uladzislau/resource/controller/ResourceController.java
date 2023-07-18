@@ -1,15 +1,13 @@
 package com.epam.uladzislau.resource.controller;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.epam.uladzislau.resource.feign.ServiceSongs;
 import com.epam.uladzislau.resource.model.Resource;
 import com.epam.uladzislau.resource.service.ResourceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,40 +28,30 @@ public class ResourceController {
     @Autowired
     private ResourceService resourceService;
 
-    @GetMapping("/all")
-    List<Resource> getAll() {
-        return resourceService.getAll();
+    @GetMapping("/all/{page}")
+    Page<Resource> getAll(@PathVariable int page) {
+        return resourceService.getAll(page);
     }
 
     @GetMapping("/{id}")
-    ResponseEntity<Map<String, String>> get(@PathVariable Long id) {
-        Map<String, String> object = new HashMap<>();
-        var resource = resourceService.get(id);
-        object.put("id", Long.toString(resource.getId()));
-        object.put("title", Arrays.toString(resource.getAudioBytes()));
-        object.put("metadataId", Long.toString(resource.getMetadataId()));
-        return new ResponseEntity<>(object, HttpStatus.OK);
+    ResponseEntity<Resource> get(@PathVariable Long id) {
+        return new ResponseEntity<>(resourceService.get(id), HttpStatus.OK);
     }
 
     @PostMapping
-    Long upload(@RequestBody MultipartFile file) {
-        return resourceService.upload(file);
+    ResponseEntity<Long> upload(@RequestBody MultipartFile file) {
+        HttpStatus status = HttpStatus.OK;
+        Long createdResourceId = null;
+        try{
+            createdResourceId = resourceService.upload(file);
+        } catch (Exception e) {
+            status = HttpStatus.BAD_REQUEST;
+        }
+        return new ResponseEntity<>(createdResourceId, status);
     }
 
     @DeleteMapping("/{ids}")
     List<Long> delete(@PathVariable List<Long> ids) {
         return resourceService.delete(ids);
     }
-
-    @GetMapping("/getsong")
-    ResponseEntity<Map<String, String>> getsong() {
-        Map<String, String> object = new HashMap<>();
-        var song = feign.getSong(1);
-        object.put("id", Long.toString(song.getId()));
-        System.out.println("========================= " + song);
-        object.put("title", song.getTitle());
-        object.put("resourceId", Long.toString(song.getResourceId()));
-        return new ResponseEntity<>(object, HttpStatus.OK);
-    }
-
 }

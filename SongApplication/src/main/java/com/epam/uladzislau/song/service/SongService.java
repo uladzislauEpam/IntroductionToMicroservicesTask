@@ -7,6 +7,8 @@ import com.epam.uladzislau.song.model.Song;
 import com.epam.uladzislau.song.repository.SongRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,8 +17,9 @@ public class SongService {
     @Autowired
     private SongRepository songRepository;
 
-    public List<Song> getAll() {
-        return songRepository.findAll();
+    public Page<Song> getAll(int page) {
+        PageRequest pageRequest = PageRequest.of(page, 10);
+        return songRepository.findAll(pageRequest);
     }
 
     public Song get(Long id) {
