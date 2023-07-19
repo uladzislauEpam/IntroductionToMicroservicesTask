@@ -1,0 +1,1 @@
+INSERT INTO resource (id, metadata_id) VALUES (1, 1);

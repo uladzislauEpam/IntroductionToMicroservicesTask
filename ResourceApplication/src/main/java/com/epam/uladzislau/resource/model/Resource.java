@@ -17,6 +17,11 @@ public class Resource {
         this.audioBytes = audioBytes;
     }
 
+    public Resource(byte[] audioBytes, Long metadataId) {
+        this.metadataId = metadataId;
+        this.audioBytes = audioBytes;
+    }
+
     public Resource(Long id, byte[] audioBytes, Long metadataId) {
         this.id = id;
         this.metadataId = metadataId;
@@ -48,5 +53,9 @@ public class Resource {
 
     public void setMetadataId(Long metadataId) {
         this.metadataId = metadataId;
+    }
+
+    public void setAudioBytes(byte[] audioBytes) {
+        this.audioBytes = audioBytes;
     }
 }
