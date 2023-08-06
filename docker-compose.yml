@@ -1,16 +1,18 @@
 version: '3.5'
 services:
-  app-e:
-    container_name: app-eureka
-    image: app-eureka
-    build:
-      context: ./EurekaServer
+  aws:
+    image: 'localstack/localstack'
+    container_name: 'localstack'
+    environment:
+      - SERVICES=s3
+      - DEFAULT_REGION=us-east-1
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=accessKey
+      - AWS_SECRET_ACCESS_KEY=secretKey
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
     ports:
-      - "8761:8761"
-    expose:
-      - 8761
-    networks:
-      - proxy-net
+      - '4566:4566'
   app-r:
     container_name: app-resource
     image: app-resource

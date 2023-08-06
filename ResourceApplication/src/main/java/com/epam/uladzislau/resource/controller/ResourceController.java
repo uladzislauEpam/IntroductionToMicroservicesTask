@@ -2,7 +2,6 @@ package com.epam.uladzislau.resource.controller;
 
 import java.util.List;
 
-import com.epam.uladzislau.resource.feign.ServiceSongs;
 import com.epam.uladzislau.resource.model.Resource;
 import com.epam.uladzislau.resource.service.ResourceService;
 
@@ -22,9 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/resource")
 public class ResourceController {
-
-    @Autowired
-    private ServiceSongs feign;
     @Autowired
     private ResourceService resourceService;
 

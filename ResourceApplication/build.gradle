@@ -29,8 +29,11 @@ dependencies {
     implementation 'org.apache.tika:tika:2.8.0'
     implementation 'org.apache.tika:tika-parsers:1.17'
 
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server:2.2.8.RELEASE'
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:2.2.8.RELEASE'
+//    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server:2.2.8.RELEASE'
+//    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:2.2.8.RELEASE'
+
+    implementation 'com.amazonaws:aws-java-sdk:1.12.523'
+
 }
 
 test {

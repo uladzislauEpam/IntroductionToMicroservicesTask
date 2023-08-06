@@ -1,14 +1,20 @@
 package com.epam.uladzislau.resource.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.epam.uladzislau.resource.dto.SongDto;
-import com.epam.uladzislau.resource.feign.ServiceSongs;
 import com.epam.uladzislau.resource.model.Resource;
 import com.epam.uladzislau.resource.repository.ResourceRepository;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.parser.AutoDetectParser;
@@ -29,11 +35,14 @@ public class ResourceService {
     @Value("${song.app.url}")
     private static String URL;
 
-    @Autowired
-    private ServiceSongs feign;
+    @Value("${aws.bucket.name}")
+    private String bucketName;
 
     @Autowired
     private ResourceRepository resourceRepository;
+
+    @Autowired
+    private AmazonS3 amazonS3Client;
 
     public Page<Resource> getAll(int page) {
         PageRequest pageRequest = PageRequest.of(page, 10);
@@ -49,7 +58,6 @@ public class ResourceService {
         for (var id : ids) {
             var resource = resourceRepository.findById(id);
             if(resource.isPresent()) {
-                validateMetadataDeleted(feign.deleteSong(resource.get().getMetadataId()));
                 resourceRepository.deleteById(id);
             }
         }
@@ -68,17 +76,12 @@ public class ResourceService {
             stream.close();
 
             Resource resource = new Resource(file.getBytes());
-            var songId = feign.postSong(new SongDto(
-                metadata.get(TikaCoreProperties.TITLE),
-                metadata.get("xmpDM:album"),
-                metadata.get("xmpDM:albumArtist"),
-                metadata.get("Content-Type")));
 
-            if (songId != null) {
-                resource.setMetadataId(songId);
-                resourceRepository.save(resource);
-            } else {
-            }
+            File convFile = new File("/" + file.getOriginalFilename());
+            file.transferTo(convFile);
+
+            putObject(convFile);
+            resourceRepository.save(resource);
             return resource.getId();
         } catch (Exception e) {
             System.out.println("Cannot process file: " + e.getMessage());
@@ -86,16 +89,25 @@ public class ResourceService {
         }
     }
 
-    private void validateMetadataDeleted(List<Long> ids) {
-        if(ids.size() != 1) {
-            throw new RuntimeException("Error deleting resource metadata");
-        }
-    }
-
     private void validateUploadFile(Metadata metadata){
         String format = metadata.get("Content-Type");
         if (format == null || format.isBlank() || !format.toLowerCase().contains("audio/mpeg")) {
             throw new RuntimeException("Invalid file provided");
+        }
+    }
+
+    public List<S3ObjectSummary> listObjects(String bucketName){
+        ObjectListing objectListing = amazonS3Client.listObjects(bucketName);
+        return objectListing.getObjectSummaries();
+    }
+
+    public void putObject(File file) throws IOException {
+        try {
+            var putObjectRequest =
+                new PutObjectRequest(bucketName, file.getName(), file).withCannedAcl(CannedAccessControlList.PublicRead);
+            amazonS3Client.putObject(putObjectRequest);
+        } catch (Exception e){
+            System.out.println("Some error has ocurred.");
         }
     }
 }
