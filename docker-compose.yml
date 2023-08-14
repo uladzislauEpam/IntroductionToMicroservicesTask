@@ -11,8 +11,13 @@ services:
       - AWS_SECRET_ACCESS_KEY=secretKey
       - DEBUG=1
       - DATA_DIR=/tmp/localstack/data
+      - HOSTNAME_EXTERNAL=localhost
+      - PORT_WEB_UI=8082
     ports:
       - '4566:4566'
+      - '8082:8082'
+    volumes:
+      - ./infra/localstack:/docker-entrypoint-initaws.d
   app-r:
     container_name: app-resource
     image: app-resource
@@ -27,11 +32,17 @@ services:
       - internal-r
     depends_on:
       - db-r
+      - aws
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db-r:5432/postgres
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - DEFAULT_REGION=us-east-1
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=accessKey
+      - AWS_SECRET_ACCESS_KEY=secretKey
+      - DEBUG=1
   db-r:
     image: postgres
     ports:
@@ -76,6 +87,17 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_DB=postgres
+  app-p:
+    container_name: app-processor
+    image: app-processor
+    build:
+      context: ./ResourceProcessor
+    ports:
+      - "8081:8081"
+    expose:
+      - 8081
+    networks:
+      - proxy-net
 networks:
   proxy-net:
     name: proxy-net

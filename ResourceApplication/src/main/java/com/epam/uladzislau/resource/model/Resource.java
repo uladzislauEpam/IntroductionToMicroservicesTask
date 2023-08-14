@@ -13,19 +13,8 @@ public class Resource {
 
     public Resource() {}
 
-    public Resource(byte[] audioBytes) {
-        this.audioBytes = audioBytes;
-    }
-
-    public Resource(byte[] audioBytes, Long metadataId) {
-        this.metadataId = metadataId;
-        this.audioBytes = audioBytes;
-    }
-
-    public Resource(Long id, byte[] audioBytes, Long metadataId) {
-        this.id = id;
-        this.metadataId = metadataId;
-        this.audioBytes = audioBytes;
+    public Resource(String name) {
+        this.name = name;
     }
 
     @Id
@@ -33,29 +22,14 @@ public class Resource {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "audio_bytes", columnDefinition = "bytea")
-    private byte[] audioBytes;
-
-    @Column(name = "metadata_id")
-    private Long metadataId;
+    @Column(name = "name")
+    private String name;
 
     public Long getId() {
         return id;
     }
 
-    public Long getMetadataId() {
-        return metadataId;
-    }
-
-    public byte[] getAudioBytes() {
-        return audioBytes;
-    }
-
-    public void setMetadataId(Long metadataId) {
-        this.metadataId = metadataId;
-    }
-
-    public void setAudioBytes(byte[] audioBytes) {
-        this.audioBytes = audioBytes;
+    public String getName() {
+        return name;
     }
 }

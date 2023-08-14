@@ -29,6 +29,9 @@ dependencies {
     implementation 'org.apache.tika:tika:2.8.0'
     implementation 'org.apache.tika:tika-parsers:1.17'
 
+    implementation 'io.github.sivalabs:localstack-spring-boot-starter:0.0.1'
+    implementation 'org.testcontainers:localstack:1.14.3'
+
 //    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server:2.2.8.RELEASE'
 //    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:2.2.8.RELEASE'
 

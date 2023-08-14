@@ -6,17 +6,20 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.epam.uladzislau.resource.dto.SongDto;
 import com.epam.uladzislau.resource.model.Resource;
 import com.epam.uladzislau.resource.repository.ResourceRepository;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import org.apache.commons.io.FileUtils;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
@@ -42,7 +45,7 @@ public class ResourceService {
     private ResourceRepository resourceRepository;
 
     @Autowired
-    private AmazonS3 amazonS3Client;
+    private AmazonS3 amazonS3;
 
     public Page<Resource> getAll(int page) {
         PageRequest pageRequest = PageRequest.of(page, 10);
@@ -58,6 +61,7 @@ public class ResourceService {
         for (var id : ids) {
             var resource = resourceRepository.findById(id);
             if(resource.isPresent()) {
+                deleteObject(bucketName, resource.orElseThrow().getName());
                 resourceRepository.deleteById(id);
             }
         }
@@ -75,7 +79,7 @@ public class ResourceService {
             validateUploadFile(metadata);
             stream.close();
 
-            Resource resource = new Resource(file.getBytes());
+            Resource resource = new Resource(file.getOriginalFilename());
 
             File convFile = new File("/" + file.getOriginalFilename());
             file.transferTo(convFile);
@@ -97,7 +101,7 @@ public class ResourceService {
     }
 
     public List<S3ObjectSummary> listObjects(String bucketName){
-        ObjectListing objectListing = amazonS3Client.listObjects(bucketName);
+        ObjectListing objectListing = amazonS3.listObjects(bucketName);
         return objectListing.getObjectSummaries();
     }
 
@@ -105,9 +109,24 @@ public class ResourceService {
         try {
             var putObjectRequest =
                 new PutObjectRequest(bucketName, file.getName(), file).withCannedAcl(CannedAccessControlList.PublicRead);
-            amazonS3Client.putObject(putObjectRequest);
+            amazonS3.putObject(putObjectRequest);
         } catch (Exception e){
             System.out.println("Some error has ocurred.");
         }
     }
+
+    public void deleteObject(String bucketName, String objectName){
+        amazonS3.deleteObject(bucketName, objectName);
+    }
+
+    public void downloadObject(String bucketName, String objectName){
+        S3Object s3object = amazonS3.getObject(bucketName, objectName);
+        S3ObjectInputStream inputStream = s3object.getObjectContent();
+        try {
+            FileUtils.copyInputStreamToFile(inputStream, new File("." + File.separator + objectName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
