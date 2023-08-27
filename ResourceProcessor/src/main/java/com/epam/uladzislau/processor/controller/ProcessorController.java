@@ -32,9 +32,11 @@ public class ProcessorController {
         return new ResponseEntity<>(1L, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{ids}")
-    List<Long> delete(@PathVariable List<Long> ids) {
-        ids.forEach(id -> feign.deleteSong(id));
-        return ids;
+    @DeleteMapping("/{id}")
+    Long delete(@PathVariable Long id) {
+        System.out.println(id);
+        return id;
+//        ids.forEach(id -> feign.deleteSong(id));
+//        return ids;
     }
 }

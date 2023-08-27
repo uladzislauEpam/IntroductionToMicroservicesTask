@@ -41,4 +41,17 @@ public class SongService {
     public Long upload(Song song) {
         return songRepository.save(song).getId();
     }
+
+//    @Autowired
+//    private RabbitTemplate template;
+//
+//    @PostMapping("/publish")
+//    public String publishMessage(@RequestBody CustomMessage message) {
+//        message.setMessageId(UUID.randomUUID().toString());
+//        message.setMessageDate(new Date());
+//        template.convertAndSend(MQConfig.EXCHANGE,
+//            MQConfig.ROUTING_KEY, message);
+//
+//        return "Message Published";
+//    }
 }

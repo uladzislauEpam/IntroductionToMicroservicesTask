@@ -25,6 +25,8 @@ dependencies {
     }
     compileOnly 'org.projectlombok:lombok:1.18.28'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server:2.2.8.RELEASE'
+
+
 }
 
 jar {

@@ -2,6 +2,8 @@ Repository:\
 https://github.com/uladzislauEpam/IntroductionToMicroservicesTask.git
 \
 \
+Rabbimq quest:\
+rabbitmqctl set_permissions -p / guest ".*" ".*" ".*"\
 Startup:\
 gradle build\
 docker-compose up\

@@ -6,24 +6,29 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.epam.uladzislau.resource.dto.SongDto;
+import com.epam.uladzislau.resource.feign.ServiceProcessor;
 import com.epam.uladzislau.resource.model.Resource;
+import com.epam.uladzislau.resource.mq.MQConfig;
 import com.epam.uladzislau.resource.repository.ResourceRepository;
 
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.metadata.Metadata;
+import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.sax.BodyContentHandler;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -34,6 +39,9 @@ import org.xml.sax.ContentHandler;
 
 @Service
 public class ResourceService {
+
+    @Autowired
+    private ServiceProcessor feign;
 
     @Value("${song.app.url}")
     private static String URL;
@@ -46,6 +54,9 @@ public class ResourceService {
 
     @Autowired
     private AmazonS3 amazonS3;
+
+    @Autowired
+    private RabbitTemplate template;
 
     public Page<Resource> getAll(int page) {
         PageRequest pageRequest = PageRequest.of(page, 10);
@@ -61,6 +72,7 @@ public class ResourceService {
         for (var id : ids) {
             var resource = resourceRepository.findById(id);
             if(resource.isPresent()) {
+                feign.deleteSong(id);
                 deleteObject(bucketName, resource.orElseThrow().getName());
                 resourceRepository.deleteById(id);
             }
@@ -78,14 +90,15 @@ public class ResourceService {
             pparser.parse(stream, contentHandler, metadata, new ParseContext());
             validateUploadFile(metadata);
             stream.close();
-
             Resource resource = new Resource(file.getOriginalFilename());
-
-            File convFile = new File("/" + file.getOriginalFilename());
-            file.transferTo(convFile);
-
-            putObject(convFile);
-            resourceRepository.save(resource);
+            SongDto songDto = new SongDto(
+                metadata.get(TikaCoreProperties.TITLE),
+                metadata.get("xmpDM:album"),
+                metadata.get("xmpDM:albumArtist"),
+                metadata.get("Content-Type"));
+            template.convertAndSend(MQConfig.EXCHANGE, MQConfig.ROUTING_KEY, songDto); // to RabbitMQ
+            putObject(file); // to LocalStack
+            resourceRepository.save(resource); // to DB
             return resource.getId();
         } catch (Exception e) {
             System.out.println("Cannot process file: " + e.getMessage());
@@ -100,6 +113,7 @@ public class ResourceService {
         }
     }
 
+    // listObjects("resource-bucket");
     public List<S3ObjectSummary> listObjects(String bucketName){
         ObjectListing objectListing = amazonS3.listObjects(bucketName);
         return objectListing.getObjectSummaries();
@@ -113,6 +127,26 @@ public class ResourceService {
         } catch (Exception e){
             System.out.println("Some error has ocurred.");
         }
+    }
+
+    public void putObject(MultipartFile multipart) throws IOException {
+        try {
+            InputStream stream = multipart.getInputStream();
+            var putObjectRequest =
+                new PutObjectRequest(bucketName, multipart.getOriginalFilename(), stream, extractObjectMetadata(multipart))
+                    .withCannedAcl(CannedAccessControlList.PublicRead);
+            amazonS3.putObject(putObjectRequest);
+        } catch (Exception e){
+            System.out.println("Some error has ocurred.");
+        }
+    }
+
+    private ObjectMetadata extractObjectMetadata(MultipartFile file) {
+        ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.setContentLength(file.getSize());
+        objectMetadata.setContentType(file.getContentType());
+        objectMetadata.getUserMetadata().put("fileExtension", FilenameUtils.getExtension(file.getOriginalFilename()));
+        return objectMetadata;
     }
 
     public void deleteObject(String bucketName, String objectName){
