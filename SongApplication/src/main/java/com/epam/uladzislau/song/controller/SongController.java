@@ -2,6 +2,7 @@ package com.epam.uladzislau.song.controller;
 
 import java.util.List;
 
+import com.epam.uladzislau.song.dto.SongDto;
 import com.epam.uladzislau.song.model.Song;
 import com.epam.uladzislau.song.service.SongService;
 
@@ -34,7 +35,8 @@ public class SongController {
     }
 
     @PostMapping
-    Long upload(@RequestBody Song song) {
+    Long upload(@RequestBody SongDto songDto) {
+        Song song = new Song(songDto.getTitle(), songDto.getAlbum(), songDto.getCreator(), songDto.getFormat());
         return songService.upload(song);
     }
 

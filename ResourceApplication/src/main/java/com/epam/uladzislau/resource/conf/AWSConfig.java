@@ -15,12 +15,13 @@ public class AWSConfig {
     @Bean
     public AmazonS3 amazonS3() {
 
-        String sqsEndpoint = "https://localhost:4566";
+        String sqsEndpoint = "http://aws:4566";
+//        String sqsEndpoint = "http://localhost:4566";
 
         AmazonS3 s3 = AmazonS3ClientBuilder
             .standard()
             .withCredentials(new DefaultAWSCredentialsProviderChain())
-            .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:4566", "us-east-1"))
+            .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(sqsEndpoint, "us-east-1"))
             .withPathStyleAccessEnabled(true)
             .build();
 

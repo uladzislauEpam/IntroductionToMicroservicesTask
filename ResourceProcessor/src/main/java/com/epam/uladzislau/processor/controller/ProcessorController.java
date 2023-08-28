@@ -26,11 +26,11 @@ public class ProcessorController {
     @Autowired
     private ProcessorService processorService;
 
-    @PostMapping
-    ResponseEntity<Long> send(@RequestParam Song song) {
-        feign.postSong(song);
-        return new ResponseEntity<>(1L, HttpStatus.OK);
-    }
+//    @PostMapping
+//    ResponseEntity<Long> send(@RequestParam Song song) {
+//        feign.postSong(song);
+//        return new ResponseEntity<>(1L, HttpStatus.OK);
+//    }
 
     @DeleteMapping("/{id}")
     Long delete(@PathVariable Long id) {

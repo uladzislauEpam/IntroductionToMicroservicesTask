@@ -1,5 +1,6 @@
 package com.epam.uladzislau.processor.feign;
 
+import com.epam.uladzislau.processor.dto.SongDto;
 import com.epam.uladzislau.processor.model.Song;
 
 import org.springframework.cloud.openfeign.FeignClient;
@@ -18,7 +19,7 @@ public interface ServiceSongs {
     Song getSong(@PathVariable("id") long id);
 
     @PostMapping("api/song")
-    Song postSong(@RequestBody Song song);
+    Long postSong(@RequestBody SongDto song);
 
     @DeleteMapping("api/song/{id}")
     void deleteSong(@PathVariable("id") long id);
