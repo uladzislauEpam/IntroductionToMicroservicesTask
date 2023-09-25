@@ -40,9 +40,9 @@ public class SongController {
         return songService.upload(song);
     }
 
-    @DeleteMapping("/{ids}")
-    List<Long> delete(@PathVariable List<Long> ids) {
-        return songService.delete(ids);
+    @DeleteMapping("/{id}")
+    Long delete(@PathVariable Long id) {
+        return songService.delete(id);
     }
 
 }

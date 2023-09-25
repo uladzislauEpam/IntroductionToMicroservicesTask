@@ -75,6 +75,7 @@ public class ResourceService {
                 feign.deleteSong(id);
                 deleteObject(bucketName, resource.orElseThrow().getName());
                 resourceRepository.deleteById(id);
+                deletedIds.add(id);
             }
         }
         return deletedIds;

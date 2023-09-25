@@ -17,6 +17,11 @@ public class Resource {
         this.name = name;
     }
 
+    public Resource(long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

@@ -35,8 +35,7 @@ public class ProcessorController {
     @DeleteMapping("/{id}")
     Long delete(@PathVariable Long id) {
         System.out.println(id);
+        feign.deleteSong(id);
         return id;
-//        ids.forEach(id -> feign.deleteSong(id));
-//        return ids;
     }
 }

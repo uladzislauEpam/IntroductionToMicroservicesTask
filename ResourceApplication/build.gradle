@@ -12,8 +12,8 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+//    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+//    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
 
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -37,6 +37,8 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:2.2.8.RELEASE'
 
     implementation 'com.amazonaws:aws-java-sdk:1.12.523'
+
+//    ext['junit-jupiter.version'] = '5.7.1'
 
 }
 

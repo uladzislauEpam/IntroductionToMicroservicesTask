@@ -3,4 +3,5 @@ include 'ResourceApplication'
 include 'SongApplication'
 include 'EurekaServer'
 include 'ResourceProcessor'
+include 'ApiGateway'
 

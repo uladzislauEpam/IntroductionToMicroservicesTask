@@ -38,6 +38,14 @@ public class SongService {
         return deletedIds;
     }
 
+    public Long delete(Long id) {
+        var resource = songRepository.findById(id);
+        if(resource.isPresent()) {
+            songRepository.deleteById(id);
+        }
+        return id;
+    }
+
     public Long upload(Song song) {
         return songRepository.save(song).getId();
     }

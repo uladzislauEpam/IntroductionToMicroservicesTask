@@ -43,6 +43,17 @@ services:
       - 8761
     networks:
       - proxy-net
+  app-g:
+    container_name: app-gateway
+    image: app-gateway
+    build:
+      context: ./ApiGateway
+    ports:
+      - "8000:8000"
+    expose:
+      - 8000
+    networks:
+      - proxy-net
   app-r:
     container_name: app-resource
     image: app-resource

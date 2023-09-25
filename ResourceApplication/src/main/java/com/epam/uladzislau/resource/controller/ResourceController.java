@@ -5,6 +5,7 @@ import java.util.List;
 import com.epam.uladzislau.resource.model.Resource;
 import com.epam.uladzislau.resource.service.ResourceService;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,12 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/resource")
 public class ResourceController {
+
+    ResourceController(){}
+
+    ResourceController(ResourceService resourceService) {
+        this.resourceService = resourceService;
+    }
     @Autowired
     private ResourceService resourceService;
 
@@ -48,6 +55,7 @@ public class ResourceController {
 
     @DeleteMapping("/{ids}")
     List<Long> delete(@PathVariable List<Long> ids) {
+
         return resourceService.delete(ids);
     }
 }

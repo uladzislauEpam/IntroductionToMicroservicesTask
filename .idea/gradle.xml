@@ -4,12 +4,15 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+        <option name="delegatedBuild" value="true" />
+        <option name="testRunner" value="GRADLE" />
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="gradleHome" value="$USER_HOME$/Apps/IntelliJ IDEA Community Edition 2021.1.1/plugins/gradle-6.9.1" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/ApiGateway" />
             <option value="$PROJECT_DIR$/EurekaServer" />
             <option value="$PROJECT_DIR$/ResourceApplication" />
             <option value="$PROJECT_DIR$/ResourceProcessor" />
