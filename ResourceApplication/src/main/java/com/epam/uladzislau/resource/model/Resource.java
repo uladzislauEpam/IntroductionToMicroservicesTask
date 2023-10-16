@@ -17,6 +17,11 @@ public class Resource {
         this.name = name;
     }
 
+    public Resource(String name, int storageId) {
+        this.name = name;
+        this.storageId = (long) storageId;
+    }
+
     public Resource(long id, String name) {
         this.id = id;
         this.name = name;
@@ -30,6 +35,9 @@ public class Resource {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "storage_id")
+    private Long storageId;
+
     public Long getId() {
         return id;
     }
@@ -37,4 +45,12 @@ public class Resource {
     public String getName() {
         return name;
     }
+
+    public Long getStorageId() {
+        return storageId;
+    }
+
+    public void setStorageId(Long storageId){this.storageId = storageId;}
+
+
 }

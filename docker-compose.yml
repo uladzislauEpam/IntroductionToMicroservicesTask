@@ -134,6 +134,38 @@ services:
       - 8083
     networks:
       - proxy-net
+  app-st:
+    container_name: app-storage
+    image: app-storage
+    build:
+      context: ./StorageApplication
+    ports:
+      - "8081:8081"
+    expose:
+      - 8081
+    networks:
+      - proxy-net
+      - internal-st
+    depends_on:
+      - db-st
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-st:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+  db-st:
+    image: postgres
+    ports:
+      - "54322:5432"
+    networks:
+      - internal-st
+    expose:
+      - 54322
+      - 5432
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
 networks:
   proxy-net:
     name: proxy-net
@@ -141,3 +173,5 @@ networks:
     name: internal-s
   internal-r:
     name: internal-r
+  internal-st:
+    name: internal-st

@@ -38,7 +38,12 @@ dependencies {
 
     implementation 'com.amazonaws:aws-java-sdk:1.12.523'
 
-//    ext['junit-jupiter.version'] = '5.7.1'
+    implementation 'org.springframework.boot:spring-boot-starter-aop:1.5.22.RELEASE'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot2:1.0.0'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator:2.0.0.RELEASE'
+
+    implementation 'com.internetitem:logback-elasticsearch-appender:1.5'
+
 
 }
 

@@ -1,0 +1,6 @@
+<configuration>
+    <appender name="ELASTIC" class="com.epam.uladzislau.resource.conf.ElasticSearchAppender" />
+    <root level="INFO">
+        <appender-ref ref="ELASTIC"/>
+    </root>
+</configuration>

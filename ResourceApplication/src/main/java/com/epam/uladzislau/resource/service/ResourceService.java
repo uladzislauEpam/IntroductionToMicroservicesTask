@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.epam.uladzislau.resource.dto.SongDto;
+import com.epam.uladzislau.resource.dto.StorageDto;
 import com.epam.uladzislau.resource.feign.ServiceProcessor;
+import com.epam.uladzislau.resource.feign.StorageProcessor;
 import com.epam.uladzislau.resource.model.Resource;
 import com.epam.uladzislau.resource.mq.MQConfig;
 import com.epam.uladzislau.resource.repository.ResourceRepository;
@@ -31,6 +33,8 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -41,7 +45,10 @@ import org.xml.sax.ContentHandler;
 public class ResourceService {
 
     @Autowired
-    private ServiceProcessor feign;
+    private ServiceProcessor serviceFeign;
+
+    @Autowired
+    private StorageProcessor storageFeign;
 
     @Value("${song.app.url}")
     private static String URL;
@@ -58,6 +65,9 @@ public class ResourceService {
     @Autowired
     private RabbitTemplate template;
 
+    @Autowired
+    private CircuitBreakerFactory circuitBreakerFactory;
+
     public Page<Resource> getAll(int page) {
         PageRequest pageRequest = PageRequest.of(page, 10);
         return resourceRepository.findAll(pageRequest);
@@ -72,7 +82,7 @@ public class ResourceService {
         for (var id : ids) {
             var resource = resourceRepository.findById(id);
             if(resource.isPresent()) {
-                feign.deleteSong(id);
+                serviceFeign.deleteSong(id);
                 deleteObject(bucketName, resource.orElseThrow().getName());
                 resourceRepository.deleteById(id);
                 deletedIds.add(id);
@@ -81,7 +91,9 @@ public class ResourceService {
         return deletedIds;
     }
 
+
     public Long upload(MultipartFile file) throws Exception {
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
         try {
             InputStream stream = file.getInputStream();
 
@@ -91,20 +103,36 @@ public class ResourceService {
             pparser.parse(stream, contentHandler, metadata, new ParseContext());
             validateUploadFile(metadata);
             stream.close();
-            Resource resource = new Resource(file.getOriginalFilename());
             SongDto songDto = new SongDto(
                 metadata.get(TikaCoreProperties.TITLE),
                 metadata.get("xmpDM:album"),
                 metadata.get("xmpDM:albumArtist"),
                 metadata.get("Content-Type"));
+
+            putObject(file, "/staging"); // to LocalStack - STAGING
+
+            circuitBreaker.run(() ->
+            storageFeign.create(new StorageDto("STAGING", bucketName, "/staging" + "/" + file.getOriginalFilename())) // to StorageApplication
+            , throwable -> getDefaultStorageAnswer());
+
             template.convertAndSend(MQConfig.EXCHANGE, MQConfig.ROUTING_KEY, songDto); // to RabbitMQ
-            putObject(file); // to LocalStack
-            resourceRepository.save(resource); // to DB
-            return resource.getId();
+
+            int storageId =
+                circuitBreaker.run(() ->
+                storageFeign.create(new StorageDto("PERMANENT", bucketName, "/permanent"  + "/" + file.getOriginalFilename())) // to StorageApplication
+                , throwable -> getDefaultStorageAnswer());
+
+            putObject(file, "/permanent"); // to LocalStack - PERMANENT
+            Resource resource = new Resource(file.getOriginalFilename(), storageId);
+            return resourceRepository.save(resource).getId(); // to DB
         } catch (Exception e) {
             System.out.println("Cannot process file: " + e.getMessage());
             throw new Exception("Cannot process file: " + e.getMessage());
         }
+    }
+
+    private int getDefaultStorageAnswer() {
+        return -1;
     }
 
     private void validateUploadFile(Metadata metadata){
@@ -126,19 +154,19 @@ public class ResourceService {
                 new PutObjectRequest(bucketName, file.getName(), file).withCannedAcl(CannedAccessControlList.PublicRead);
             amazonS3.putObject(putObjectRequest);
         } catch (Exception e){
-            System.out.println("Some error has ocurred.");
+            System.out.println(" ---ERROR: Some error has occurred.");
         }
     }
 
-    public void putObject(MultipartFile multipart) throws IOException {
+    public void putObject(MultipartFile multipart, String path) throws IOException {
         try {
             InputStream stream = multipart.getInputStream();
             var putObjectRequest =
-                new PutObjectRequest(bucketName, multipart.getOriginalFilename(), stream, extractObjectMetadata(multipart))
+                new PutObjectRequest(bucketName, path + "/" + multipart.getOriginalFilename(), stream, extractObjectMetadata(multipart))
                     .withCannedAcl(CannedAccessControlList.PublicRead);
             amazonS3.putObject(putObjectRequest);
         } catch (Exception e){
-            System.out.println("Some error has ocurred.");
+            System.out.println(" ---ERROR: Some error has occurred in S3.");
         }
     }
 
